@@ -77,7 +77,23 @@ python GaitAnalysis/main.py
 pyinstaller --onefile --windowed GaitAnalysis/main.py
 ```
 
+## 參考專案 (reference/)
+
+| 目錄 | 來源 | 技術 | 亮點 |
+|------|------|------|------|
+| `PoseAI/` | 20260707姿態POSEAI | MediaPipe Pose 33點 + FastAPI | 姿勢角度演算法、校正系統、SQLite 後端 |
+| `MoveAgeEye/` | 20260501MOVE_關節骨架 | TensorFlow.js MoveNet 17點 | 脊椎側彎偵測、復健評分遊戲 |
+
+### PoseAI 摘要
+瀏覽器 + FastAPI 後端的人體姿勢分析系統。使用 MediaPipe PoseLandmarker Lite 模型進行 2D 骨架追蹤，支援正面/側面/深蹲三種視角的生物力學指標計算（頭部傾斜、肩膀水平、膝蓋角度等）。具備個人基準線校正與 SQLite 資料庫儲存。
+
+### MoveAgeEye 摘要
+純前端 AI 人體動作偵測平台（MoveNet Lightning），含兩大模組：
+- **動作擺拍遊戲**：長者復健—比對使用者與目標姿勢的 10 個關節角度，加權評分
+- **脊椎側彎辨識**：分析肩膀對稱性、髖部對稱性、脊椎中線偏移、軀幹傾斜，輸出 0-100 風險分數
+
 ## 狀態
 - [x] Git 初始化 (2026-07-21)
-- [ ] 第一次完整 Commit
-- [ ] 連接遠端仓库
+- [x] 第一次完整 Commit (0ff70c9)
+- [x] 推送至 GitHub (Health_Image_Recognition)
+- [ ] 連接遠端仓库 (已完成)

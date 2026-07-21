@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iframe 嵌入測試 - MoveAge Eye</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #00ffcc;
+        }
+
+        p {
+            font-size: 14px;
+            color: #888;
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .iframe-container {
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 9 / 16;
+            border: 2px solid #00ffcc44;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.1);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        code {
+            background: #0a0a1a;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #00ffcc;
+            max-width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>📦 iframe 嵌入測試</h1>
+    <p>以下展示 MoveAge Eye 遊戲嵌入在 iframe 中的效果。<br>您可以複製下方程式碼嵌入到任何網頁中。</p>
+
+    <code>&lt;iframe src="https://你的網址/index.html" width="420" height="740" allow="camera" allowfullscreen&gt;&lt;/iframe&gt;</code>
+
+    <div class="iframe-container">
+        <iframe src="index.html" allow="camera *; microphone *" allowfullscreen></iframe>
+    </div>
+</body>
+
+</html>

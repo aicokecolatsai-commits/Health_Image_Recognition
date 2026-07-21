@@ -1,9 +1,9 @@
 {
   "project_info": {
     "project_number": "1039322918075",
-    "firebase_url": "https://unityme-longgood.firebaseio.com",
-    "project_id": "unityme-longgood",
-    "storage_bucket": "unityme-longgood.appspot.com"
+    "firebase_url": "https://health-image-recognition.firebaseio.com",
+    "project_id": "health-image-recognition",
+    "storage_bucket": "health-image-recognition.appspot.com"
   },
   "client": [
     {

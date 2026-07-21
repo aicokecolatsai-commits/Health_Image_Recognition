@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 姿態分析工具 - Pose Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="logo-icon">&#9733;</span>
+      <div>
+        <h1>AI 姿態分析工具</h1>
+        <span class="subtitle">Pose Analyzer v2.0</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <span id="modelStatus" class="status-badge">模型未載入</span>
+      <span id="calibStatus" class="status-badge" style="display:none">未校正</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="layout">
+      <div class="left-panel">
+        <div class="view-selector">
+          <button class="view-btn active" data-view="front">正面站姿</button>
+          <button class="view-btn" data-view="side">側面站姿</button>
+          <button class="view-btn" data-view="squat">正面深蹲</button>
+        </div>
+
+        <div class="video-container">
+          <video id="video" playsinline></video>
+          <canvas id="canvas"></canvas>
+          <div id="guideOverlay" class="guide-overlay hidden">
+            <div class="guide-content">
+              <div class="guide-icon">&#9754;</div>
+              <h3>位置引導</h3>
+              <ul>
+                <li id="guidePos1">&#10003; 距離鏡頭約 1.5~2 公尺</li>
+                <li id="guidePos2">&#10003; 全身完整入鏡</li>
+                <li id="guidePos3">&#10003; 光線充足，背景單純</li>
+                <li id="guidePos4">&#10003; 穿著合身衣物</li>
+              </ul>
+            </div>
+          </div>
+          <div id="placeholder" class="placeholder">
+            <div class="placeholder-icon">&#128247;</div>
+            <p>點擊「開啟相機」開始偵測</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="btnCamera" class="ctrl-btn primary" disabled>
+            <span class="ctrl-icon">&#9654;</span> 開啟相機
+          </button>
+          <button id="btnDetect" class="ctrl-btn success" disabled>
+            <span class="ctrl-icon">&#9673;</span> 偵測
+          </button>
+          <button id="btnSnap" class="ctrl-btn recording-btn" disabled>
+            <span class="ctrl-icon">&#9679;</span> 快拍
+          </button>
+          <button id="btnVideo" class="ctrl-btn" disabled>
+            <span class="ctrl-icon">&#128249;</span> 錄影
+          </button>
+          <button id="btnCalibrate" class="ctrl-btn" disabled>
+            <span class="ctrl-icon">&#9881;</span> 校正
+          </button>
+          <button id="btnReport" class="ctrl-btn" disabled>
+            <span class="ctrl-icon">&#128196;</span> 存報告
+          </button>
+          <button id="btnScreenshot" class="ctrl-btn" disabled>
+            <span class="ctrl-icon">&#128248;</span> 截圖
+          </button>
+        </div>
+
+        <div id="countdownOverlay" class="countdown-overlay hidden">
+          <div class="countdown-number" id="countdownNum">5</div>
+          <div class="countdown-label">請維持姿勢</div>
+        </div>
+
+        <div id="captureOverlay" class="capture-overlay hidden">
+          <div class="capture-header">
+            <span class="capture-icon">&#9989;</span>
+            <span>姿勢已記錄</span>
+          </div>
+          <div class="capture-body" id="captureBody"></div>
+          <div class="capture-footer">
+            <button id="btnCaptureClose" class="ctrl-btn">關閉</button>
+            <button id="btnCaptureReport" class="ctrl-btn">產出報告</button>
+            <button id="btnCaptureSave" class="ctrl-btn">儲存截圖</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="metrics-header">
+          <h2>姿勢分析</h2>
+          <span id="fpsCounter" class="fps">0 FPS</span>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card" data-views="front squat">
+            <div class="metric-title">
+              頭部側偏
+              <span class="metric-conf" id="conf-headLateralTilt"></span>
+            </div>
+            <div class="metric-value" id="val-headLateralTilt">未施測</div>
+            <div class="metric-delta" id="delta-headLateralTilt"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-headLateralTilt" style="width:0%"></div></div>
+            <div class="metric-status" id="status-headLateralTilt">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front squat">
+            <div class="metric-title">
+              頭部旋轉
+              <span class="metric-conf" id="conf-headRotation"></span>
+            </div>
+            <div class="metric-value" id="val-headRotation">未施測</div>
+            <div class="metric-delta" id="delta-headRotation"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-headRotation" style="width:0%"></div></div>
+            <div class="metric-status" id="status-headRotation">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="side">
+            <div class="metric-title">
+              頭部前傾
+              <span class="metric-conf" id="conf-headTilt"></span>
+            </div>
+            <div class="metric-value" id="val-headTilt">未施測</div>
+            <div class="metric-delta" id="delta-headTilt"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-headTilt" style="width:0%"></div></div>
+            <div class="metric-status" id="status-headTilt">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front squat">
+            <div class="metric-title">
+              肩膀水平
+              <span class="metric-conf" id="conf-shoulderLevel"></span>
+            </div>
+            <div class="metric-value" id="val-shoulderLevel">未施測</div>
+            <div class="metric-delta" id="delta-shoulderLevel"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-shoulderLevel" style="width:0%"></div></div>
+            <div class="metric-status" id="status-shoulderLevel">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="side">
+            <div class="metric-title">
+              肩膀前突
+              <span class="metric-conf" id="conf-shoulderProtraction"></span>
+            </div>
+            <div class="metric-value" id="val-shoulderProtraction">未施測</div>
+            <div class="metric-delta" id="delta-shoulderProtraction"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-shoulderProtraction" style="width:0%"></div></div>
+            <div class="metric-status" id="status-shoulderProtraction">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="side squat">
+            <div class="metric-title">
+              軀幹前傾
+              <span class="metric-conf" id="conf-trunkLean"></span>
+            </div>
+            <div class="metric-value" id="val-trunkLean">未施測</div>
+            <div class="metric-delta" id="delta-trunkLean"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-trunkLean" style="width:0%"></div></div>
+            <div class="metric-status" id="status-trunkLean">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front side squat">
+            <div class="metric-title">
+              骨盆傾斜
+              <span class="metric-conf" id="conf-pelvicTilt"></span>
+            </div>
+            <div class="metric-value" id="val-pelvicTilt">未施測</div>
+            <div class="metric-delta" id="delta-pelvicTilt"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-pelvicTilt" style="width:0%"></div></div>
+            <div class="metric-status" id="status-pelvicTilt">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front squat">
+            <div class="metric-title">
+              膝內外翻
+              <span class="metric-conf" id="conf-kneeVarusValgus"></span>
+            </div>
+            <div class="metric-value" id="val-kneeVarusValgus">未施測</div>
+            <div class="metric-delta" id="delta-kneeVarusValgus"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-kneeVarusValgus" style="width:0%"></div></div>
+            <div class="metric-status" id="status-kneeVarusValgus">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="side">
+            <div class="metric-title">
+              膝關節角度
+              <span class="metric-conf" id="conf-kneeAngle"></span>
+            </div>
+            <div class="metric-value" id="val-kneeAngle">未施測</div>
+            <div class="metric-delta" id="delta-kneeAngle"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-kneeAngle" style="width:0%"></div></div>
+            <div class="metric-status" id="status-kneeAngle">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="side">
+            <div class="metric-title">
+              踝關節角度
+              <span class="metric-conf" id="conf-ankleAngle"></span>
+            </div>
+            <div class="metric-value" id="val-ankleAngle">未施測</div>
+            <div class="metric-delta" id="delta-ankleAngle"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-ankleAngle" style="width:0%"></div></div>
+            <div class="metric-status" id="status-ankleAngle">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="squat">
+            <div class="metric-title">
+              膝蓋軌跡
+              <span class="metric-conf" id="conf-kneeTracking"></span>
+            </div>
+            <div class="metric-value" id="val-kneeTracking">未施測</div>
+            <div class="metric-delta" id="delta-kneeTracking"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-kneeTracking" style="width:0%"></div></div>
+            <div class="metric-status" id="status-kneeTracking">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front side squat">
+            <div class="metric-title">
+              脊椎彎曲
+              <span class="metric-conf" id="conf-spineCurve"></span>
+            </div>
+            <div class="metric-value" id="val-spineCurve">未施測</div>
+            <div class="metric-delta" id="delta-spineCurve"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-spineCurve" style="width:0%"></div></div>
+            <div class="metric-status" id="status-spineCurve">等待中</div>
+          </div>
+
+          <div class="metric-card" data-views="front side squat">
+            <div class="metric-title">
+              重心偏移
+              <span class="metric-conf" id="conf-cogShift"></span>
+            </div>
+            <div class="metric-value" id="val-cogShift">未施測</div>
+            <div class="metric-delta" id="delta-cogShift"></div>
+            <div class="metric-bar"><div class="bar-fill" id="bar-cogShift" style="width:0%"></div></div>
+            <div class="metric-status" id="status-cogShift">等待中</div>
+          </div>
+        </div>
+
+        <div class="skeleton-toggle">
+          <label><input type="checkbox" id="chkLabels" checked> 節點</label>
+          <label><input type="checkbox" id="chkAngles" checked> 角度</label>
+          <label><input type="checkbox" id="chkGrid" checked> 參考線</label>
+          <label><input type="checkbox" id="chkConf" checked> 信心度</label>
+        </div>
+
+        <div class="body-coverage">
+          <span>身體偵測覆蓋率:</span>
+          <span id="coverageBar" class="coverage-bar"><span id="coverageFill" class="coverage-fill" style="width:0%"></span></span>
+          <span id="coverageText">0%</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 校正 Modal -->
+  <div id="calibModal" class="modal hidden">
+    <div class="modal-content" style="max-width:600px">
+      <div class="modal-header">
+        <h2>姿勢校正</h2>
+      </div>
+      <div class="modal-body" id="calibBody">
+        <div id="calibStep1">
+          <div class="calib-steps">
+            <div class="calib-step active">1. 模式</div>
+            <div class="calib-step">2. 準備</div>
+            <div class="calib-step">3. 測量</div>
+            <div class="calib-step">4. 結果</div>
+          </div>
+
+          <h3>選擇校正模式</h3>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button id="calibModeQuick" class="calib-mode-btn active" data-mode="quick">
+              <div style="font-size:18px">&#9881;</div>
+              <div><b>快速校正</b></div>
+              <div style="font-size:11px;color:#888;font-weight:normal">無參考線，記錄自然姿勢</div>
+            </button>
+            <button id="calibModePlumb" class="calib-mode-btn" data-mode="plumb">
+              <div style="font-size:18px">&#128207;</div>
+              <div><b>鉛垂線校正</b></div>
+              <div style="font-size:11px;color:#888;font-weight:normal">以背景垂直參考線為基準</div>
+            </button>
+          </div>
+
+          <div id="calibQuickInfo">
+            <p style="color:#ff9800;font-size:13px;margin-bottom:8px">
+              &#9888; 記錄你<b>個人</b>的自然站立姿勢為基準線，所有角度顯示偏差 (Δ)。
+            </p>
+            <ul class="calib-checklist">
+              <li>&#9744; 相機放在眼睛同高</li>
+              <li>&#9744; 站在鏡頭前 1.5~2 公尺</li>
+              <li>&#9744; 全身完整入鏡</li>
+              <li>&#9744; 面向鏡頭，放鬆自然站立</li>
+              <li>&#9744; 雙手自然垂放</li>
+              <li>&#9744; 直視前方</li>
+            </ul>
+          </div>
+
+          <div id="calibPlumbInfo" style="display:none">
+            <p style="color:#4fc3f7;font-size:13px;margin-bottom:8px">
+              &#128161; 利用背景中的垂直參考線（門框、牆角、掛畫邊緣、鉛垂線）校正相機水平，獲得<b>絕對</b>角度值。
+            </p>
+            <ul class="calib-checklist">
+              <li>&#9744; 確定背景有一條明顯的垂直線</li>
+              <li>&#9744; 在影片畫面中<b>點擊兩個點</b>標出此垂直線</li>
+              <li>&#9744; 系統會自動校正相機傾斜</li>
+              <li>&#9744; 然後再進行自然姿勢測量</li>
+            </ul>
+            <div id="plumbStatus" style="color:#888;font-size:12px;text-align:center;padding:8px;background:rgba(255,255,255,0.03);border-radius:6px">
+              尚未標記垂直線 — 請在影片上點擊上、下兩個點
+            </div>
+          </div>
+
+          <div style="text-align:center;margin-top:16px">
+            <button id="btnCalibStart" class="ctrl-btn success" disabled>準備好了，開始校正</button>
+          </div>
+        </div>
+
+        <div id="calibStep2" style="display:none">
+          <div class="calib-steps">
+            <div class="calib-step done">&#10003; 1. 模式</div>
+            <div class="calib-step done">&#10003; 2. 準備</div>
+            <div class="calib-step active">3. 測量中...</div>
+            <div class="calib-step">4. 結果</div>
+          </div>
+          <div style="text-align:center;padding:20px">
+            <div class="calib-spinner"></div>
+            <p id="calibProgress" style="margin-top:12px;color:#888">正在測量基準姿勢，請維持不動...</p>
+            <div class="calib-progress-bar"><div id="calibProgressFill" class="calib-progress-fill"></div></div>
+          </div>
+        </div>
+
+        <div id="calibStep3" style="display:none">
+          <div class="calib-steps">
+            <div class="calib-step done">&#10003; 1. 模式</div>
+            <div class="calib-step done">&#10003; 2. 準備</div>
+            <div class="calib-step done">&#10003; 3. 測量</div>
+            <div class="calib-step active">4. 校正結果</div>
+          </div>
+          <div id="calibResults"></div>
+          <div style="text-align:center;margin-top:16px">
+            <button id="btnCalibAccept" class="ctrl-btn success">確認，開始分析</button>
+            <button id="btnCalibRetry" class="ctrl-btn">重新校正</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 報告 Modal -->
+  <div id="reportModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>姿勢分析報告</h2>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+      <div id="reportBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="exportCSV" class="ctrl-btn">匯出 CSV</button>
+        <button id="exportJSON" class="ctrl-btn">匯出 JSON</button>
+        <button id="printReport" class="ctrl-btn">列印</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>

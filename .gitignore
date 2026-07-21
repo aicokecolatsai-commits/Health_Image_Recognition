@@ -47,6 +47,15 @@ LG/Data(原始檔)/Zebris/
 LG/Data(原始檔)/software/
 LG/Data(原始檔)/$RECYCLE.BIN/
 
+# Reference projects - MediaPipe model files (auto-downloaded)
+reference/PoseAI/model/
+reference/PoseAI/pose-analyzer/model/
+reference/PoseAI/pose-analyzer/backend/data/models/
+reference/PoseAI/pose-analyzer/backend/data/videos/
+reference/PoseAI/pose-analyzer/backend/data/calibrations/
+reference/PoseAI/pose-analyzer/backend/data/reports/
+reference/PoseAI/pose-analyzer/backend/__pycache__/
+
 # OS
 Thumbs.db
 .DS_Store

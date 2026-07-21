@@ -1,0 +1,8 @@
+.git
+.gitignore
+*.md
+server.ps1
+embed-test.html
+Dockerfile
+.dockerignore
+nginx.conf

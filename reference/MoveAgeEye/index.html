@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="MoveAge Eye - AI 骨架擺拍遊戲 & 脊椎側彎辨識">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MoveAge Eye - AI 動作偵測</title>
+
+    <!-- TensorFlow.js + MoveNet (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.17.0/dist/tf-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4.17.0/dist/tf-converter.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.17.0/dist/tf-backend-webgl.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.17.0/dist/tf-backend-wasm.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Camera Layer (背景，兩個模組共用) -->
+        <div id="camera-layer">
+            <video id="camera-video" playsinline autoplay muted></video>
+            <canvas id="skeleton-canvas"></canvas>
+        </div>
+
+        <!-- ========== 首頁 Landing ========== -->
+        <div class="screen" id="landing-screen">
+            <h1 class="game-title">MOVEAGE<br>EYE</h1>
+            <p class="game-subtitle">AI 人體動作偵測平台</p>
+            <div class="landing-cards">
+                <button class="landing-card" id="enter-game-btn">
+                    <span class="landing-icon">🎮</span>
+                    <div class="landing-card-text">
+                        <span class="landing-card-title">動作擺拍遊戲</span>
+                        <span class="landing-card-desc">模仿姿勢，AI 即時評分<br>支援坐姿 / 全身模式</span>
+                    </div>
+                    <span class="landing-arrow">→</span>
+                </button>
+                <button class="landing-card" id="enter-scoliosis-btn">
+                    <span class="landing-icon">🩻</span>
+                    <div class="landing-card-text">
+                        <span class="landing-card-title">脊椎側彎辨識</span>
+                        <span class="landing-card-desc">拍照分析肩膀/骨盆對稱性<br>追蹤歷史紀錄</span>
+                    </div>
+                    <span class="landing-arrow">→</span>
+                </button>
+            </div>
+            <p class="landing-footer">由 AI 骨架偵測技術驅動<br>僅供參考，不替代醫療診斷</p>
+        </div>
+
+        <!-- ========== A. 遊戲模組 ========== -->
+
+        <!-- Loading Screen -->
+        <div class="screen" id="loading-screen">
+            <div class="loading-spinner"></div>
+            <p id="loading-text">正在準備...</p>
+            <div class="loading-bar-track">
+                <div id="loading-progress"></div>
+            </div>
+        </div>
+
+        <!-- Category Selection Screen -->
+        <div class="screen" id="category-screen">
+            <button class="back-btn" id="category-back-btn">← 返回首頁</button>
+            <h2 class="category-title">選擇活動類型</h2>
+            <p class="category-subtitle">依身體狀況選擇適合的模式</p>
+            <div class="category-cards">
+                <button class="category-card" data-category="upper">
+                    <span class="category-emoji">💪</span>
+                    <span class="category-name">上半身</span>
+                    <span class="category-desc">手臂與肩膀動作<br>🪑 可坐著遊玩</span>
+                    <span class="category-badge badge-easy">適合長輩</span>
+                </button>
+                <button class="category-card" data-category="lower">
+                    <span class="category-emoji">🦵</span>
+                    <span class="category-name">下半身</span>
+                    <span class="category-desc">腿部與髖部動作<br>🧍 需站立遊玩</span>
+                </button>
+                <button class="category-card" data-category="full">
+                    <span class="category-emoji">🏃</span>
+                    <span class="category-name">全身</span>
+                    <span class="category-desc">手腳並用全身動作<br>🧍 需站立遊玩</span>
+                    <span class="category-badge badge-challenge">挑戰模式</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="game-screen">
+            <!-- Top Bar -->
+            <div class="game-top-bar">
+                <span id="round-info">第 1 / 5 輪</span>
+                <span id="fps-counter">-- FPS</span>
+            </div>
+
+            <!-- Pose Preview Overlay -->
+            <div id="pose-preview">
+                <span class="preview-label">下一個姿勢</span>
+                <span id="pose-emoji">🧍</span>
+                <h2 id="pose-name">站立</h2>
+                <p id="pose-description">請模仿這個姿勢</p>
+                <canvas id="pose-icon-canvas" width="180" height="180"></canvas>
+            </div>
+
+            <!-- Countdown Overlay -->
+            <div id="countdown">
+                <span id="countdown-num">3</span>
+            </div>
+
+            <!-- Capture Flash -->
+            <div id="capture-flash"></div>
+
+            <!-- Score Popup -->
+            <div id="score-popup">
+                <span class="popup-label">本輪得分</span>
+                <div class="popup-compare-row">
+                    <div class="popup-snapshot-wrap">
+                        <img id="popup-snapshot" class="popup-snapshot-img" alt="擺拍截圖">
+                    </div>
+                    <div class="popup-target-wrap">
+                        <canvas id="popup-target-icon" width="80" height="80"></canvas>
+                        <span class="popup-target-label">目標</span>
+                    </div>
+                </div>
+                <span id="round-score">0</span>
+                <span id="round-stars">☆☆☆</span>
+                <span id="feedback-text">繼續加油！</span>
+                <div id="popup-angle-details" class="angle-details-container"></div>
+            </div>
+
+            <!-- Bottom Score Bar -->
+            <div class="live-score-container">
+                <div class="live-score-label">
+                    <span>最佳分數</span>
+                    <span id="live-score">0</span>
+                </div>
+                <div class="score-bar-track">
+                    <div id="live-score-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="screen" id="result-screen">
+            <h2 class="result-title">遊戲結束！</h2>
+            <span id="result-stars">☆☆☆</span>
+            <span id="result-grade">加油！</span>
+            <div class="total-score-box">
+                <span class="label">總分</span>
+                <span id="total-score">0 / 500</span>
+            </div>
+            <div id="result-details"></div>
+            <button id="play-again-btn">
+                <span>🔄</span> 再玩一次
+            </button>
+            <button class="back-btn" id="result-back-btn">← 返回首頁</button>
+        </div>
+
+        <!-- ========== B. 脊椎側彎辨識模組 ========== -->
+
+        <!-- Scoliosis: Start / Intro -->
+        <div class="screen" id="scoliosis-start-screen">
+            <button class="back-btn" id="scoliosis-back-btn">← 返回首頁</button>
+            <h2 class="scol-title">🩻 脊椎側彎辨識</h2>
+            <p class="scol-subtitle">透過 AI 分析身體對稱性</p>
+            <div class="scol-info-card">
+                <div class="scol-info-row"><span>📸</span><span>拍攝正面或背面站立照</span></div>
+                <div class="scol-info-row"><span>🤖</span><span>AI 自動偵測肩膀/骨盆/脊椎</span></div>
+                <div class="scol-info-row"><span>📊</span><span>產出對稱性評分與建議</span></div>
+                <div class="scol-info-row"><span>📈</span><span>追蹤歷史紀錄變化</span></div>
+            </div>
+            <div class="scol-actions">
+                <button class="primary-btn" id="scol-camera-btn">
+                    <span>📷</span> 即時拍照分析
+                </button>
+                <button class="secondary-btn" id="scol-upload-btn">
+                    <span>🖼️</span> 從相簿選取
+                </button>
+                <button class="secondary-btn" id="scol-history-btn">
+                    <span>📋</span> 查看歷史紀錄
+                </button>
+            </div>
+            <input type="file" id="scol-file-input" accept="image/*" style="display:none">
+            <p class="scol-disclaimer">⚠️ 此工具僅供參考，不能替代專業醫療診斷。<br>如有疑似脊椎側彎，請至醫療機構檢查。</p>
+        </div>
+
+        <!-- Scoliosis: Camera Guide -->
+        <div class="screen" id="scoliosis-guide-screen">
+            <button class="back-btn" id="scol-guide-back-btn">← 返回</button>
+            <div class="scol-guide-overlay">
+                <div class="scol-body-outline"></div>
+                <p class="scol-guide-text">請將手機放穩，讓對方站在框線內<br>需拍到 <strong>肩膀 → 骨盆</strong> 範圍</p>
+            </div>
+            <div class="scol-guide-tips">
+                <span>🧍 雙腳併攏、自然放鬆</span>
+                <span>📏 距離約 1.5~2 公尺</span>
+                <span>💡 確保光線充足</span>
+            </div>
+            <button class="primary-btn scol-capture-btn" id="scol-capture-btn">
+                <span>📸</span> 拍照 (3 秒倒數)
+            </button>
+            <div id="scol-countdown" class="scol-countdown"></div>
+        </div>
+
+        <!-- Scoliosis: Analyzing -->
+        <div class="screen" id="scoliosis-analyzing-screen">
+            <div class="loading-spinner"></div>
+            <p class="scol-analyzing-text">🤖 AI 正在分析...</p>
+            <div class="loading-bar-track">
+                <div id="scol-progress"></div>
+            </div>
+        </div>
+
+        <!-- Scoliosis: Result -->
+        <div class="screen" id="scoliosis-result-screen">
+            <div class="scol-result-scroll">
+                <h2 class="scol-result-title">分析結果</h2>
+                <!-- 照片 + 疊加分析線 -->
+                <div class="scol-result-photo-wrap">
+                    <canvas id="scol-result-canvas"></canvas>
+                </div>
+                <!-- 對稱性總分 -->
+                <div class="scol-score-circle" id="scol-score-circle">
+                    <span class="scol-score-num" id="scol-score-num">--</span>
+                    <span class="scol-score-label">對稱性</span>
+                </div>
+                <span class="scol-severity" id="scol-severity">分析中...</span>
+                <!-- 細項 -->
+                <div class="scol-details" id="scol-details"></div>
+                <!-- 建議 -->
+                <div class="scol-advice" id="scol-advice"></div>
+                <!-- 免責 -->
+                <p class="scol-disclaimer">⚠️ 此結果僅供參考，不替代醫療診斷。</p>
+                <!-- 操作按鈕 -->
+                <div class="scol-result-actions">
+                    <button class="primary-btn" id="scol-save-btn"><span>💾</span> 儲存紀錄</button>
+                    <button class="secondary-btn" id="scol-retry-btn"><span>🔄</span> 重新拍照</button>
+                    <button class="back-btn" id="scol-result-back-btn">← 返回首頁</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoliosis: History -->
+        <div class="screen" id="scoliosis-history-screen">
+            <button class="back-btn" id="scol-history-back-btn">← 返回</button>
+            <h2 class="scol-title">📋 歷史紀錄</h2>
+            <div class="scol-history-list" id="scol-history-list">
+                <p class="scol-empty-msg">尚無紀錄</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
