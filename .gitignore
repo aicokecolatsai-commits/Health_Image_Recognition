@@ -59,6 +59,9 @@ reference/PoseAI/pose-analyzer/backend/__pycache__/
 # healthIR dev directory
 healthIR/__pycache__/
 healthIR/data/
+healthIR/.env
+healthIR/serviceAccount.json
+healthIR/cloud/firebase_function/__pycache__/
 
 # OS
 Thumbs.db

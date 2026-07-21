@@ -52,6 +52,45 @@ class Config:
     CALIBRATION_HEIGHT_CM = 170
     DEFAULT_GAIT_AXIS = GaitAxis.SIDE
 
+    LINE_CHANNEL_ID = ""
+    LINE_CHANNEL_SECRET = ""
+    LINE_REDIRECT_URI = ""
+
+    FIREBASE_PROJECT_ID = ""
+    FIREBASE_CRED_PATH = ""
+    FIREBASE_API_KEY = ""
+    FIREBASE_FUNCTION_URL = ""
+
+    @classmethod
+    def load_from_env(cls, env_path: str = ""):
+        path = env_path or os.path.join(_get_base_dir(), ".env")
+        if not os.path.exists(path):
+            return
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key = key.strip()
+                val = val.strip().strip("\"'")
+                if key == "LINE_CHANNEL_ID":
+                    cls.LINE_CHANNEL_ID = val
+                elif key == "LINE_CHANNEL_SECRET":
+                    cls.LINE_CHANNEL_SECRET = val
+                elif key == "LINE_REDIRECT_URI":
+                    cls.LINE_REDIRECT_URI = val
+                elif key == "FIREBASE_PROJECT_ID":
+                    cls.FIREBASE_PROJECT_ID = val
+                elif key == "FIREBASE_CRED_PATH":
+                    cls.FIREBASE_CRED_PATH = val
+                elif key == "FIREBASE_API_KEY":
+                    cls.FIREBASE_API_KEY = val
+                elif key == "FIREBASE_FUNCTION_URL":
+                    cls.FIREBASE_FUNCTION_URL = val
+
     _locale_data = {}
 
     @classmethod

@@ -1,0 +1,8 @@
+{
+  "name": "healthir-auth-callback",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "gcloud functions deploy lineAuthCallback --runtime python312 --trigger-http --allow-unauthenticated --entry-point line_auth_callback"
+  }
+}

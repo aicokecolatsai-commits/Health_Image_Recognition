@@ -6,6 +6,7 @@ from app.state_machine import AppState
 from ui.camera_panel import CameraPanel
 from ui.gait_panel import GaitPanel
 from ui.result_panel import ResultPanel
+from ui.login_panel import LoginPanel
 from analysis.gait_analyzer import GaitResult
 
 
@@ -29,13 +30,23 @@ class MainWindow(ctk.CTk):
         self._tab_view = ctk.CTkTabview(self)
         self._tab_view.pack(fill="both", expand=True, padx=10, pady=5)
 
+        tab_login = "登入"
         tab_camera = Config.lang("camera.tab", "Camera")
         tab_gait = Config.lang("gait.tab", "Measurement")
         tab_result = Config.lang("result.tab", "Result")
 
+        self._tab_view.add(tab_login)
         self._tab_view.add(tab_camera)
         self._tab_view.add(tab_gait)
         self._tab_view.add(tab_result)
+
+        self._login_panel = LoginPanel(
+            self._tab_view.tab(tab_login),
+            self._controller.line_login,
+            self._controller.cloud,
+            self._controller.sync_manager,
+        )
+        self._login_panel.pack(fill="both", expand=True)
 
         self._camera_panel = CameraPanel(self._tab_view.tab(tab_camera), self._controller)
         self._camera_panel.pack(fill="both", expand=True)

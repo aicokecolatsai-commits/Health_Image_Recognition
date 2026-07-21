@@ -12,6 +12,9 @@ from analysis.simple_analyzer import SimpleGaitAnalyzer
 from analysis.gait_analyzer import GaitResult
 from app.state_machine import StateMachine, AppState
 from app.data_manager import DataManager
+from cloud.cloud_service import CloudService
+from cloud.line_login import LineLogin
+from cloud.sync_manager import SyncManager
 from config import Config, CameraType, GaitAxis
 
 
@@ -27,6 +30,9 @@ class AppController:
     def __init__(self):
         self.state_machine = StateMachine()
         self.data_manager = DataManager()
+        self.cloud = CloudService()
+        self.line_login = LineLogin()
+        self.sync_manager = SyncManager(self.cloud, self.line_login)
         self._camera: CameraInterface | None = None
         self._tracker: SkeletonTracker | None = None
         self._analyzer: SimpleGaitAnalyzer | None = None
@@ -138,6 +144,8 @@ class AppController:
         self._last_result = result
         if result.valid:
             self.data_manager.save_result(result)
+            if self.sync_manager.is_ready:
+                self.sync_manager.upload_assessment("default", result)
             self.state_machine.transition(AppState.RESULT)
         else:
             self.state_machine.transition(AppState.CAMERA_READY)
