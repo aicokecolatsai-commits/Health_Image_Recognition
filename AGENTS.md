@@ -13,69 +13,81 @@
 ## 目錄結構
 
 ```
-GaitAnalysis/                  # 主應用程式 (Python 原始碼)
-├── config.py                  # 全域設定、i18n 載入
+healthIR/                      # 主要開發目錄 (v2.0 重寫)
+├── config.py                  # 全域設定、i18n 載入、CameraType 列舉
 ├── main.py                    # 程式進入點
 ├── requirements.txt           # Python 依賴
 ├── analysis/                  # 步態演算法
-│   ├── gait_analyzer.py       # 步態週期分析
-│   ├── simple_analyzer.py     # 簡易分析器 (主力)
+│   ├── gait_analyzer.py       # 資料模型 + 抽象基底 (GaitLength, GaitResult...)
+│   ├── simple_analyzer.py     # 主力分析器 (GaitBEST 演算法重寫)
+│   │   ├── HS/TO 偵測         # 腳踝 AP 軌跡 + Savitzky-Golay + 波峰/波谷
+│   │   ├── CalWaterFall       # 瀑布式左右腳比對校正
+│   │   └── 真實站立/擺動期    # 從 HS/TO 事件計算，取代硬編碼
 │   ├── risk_calculator.py     # 跌倒風險計算
-│   └── math_utils.py          # 數學工具函式
+│   └── math_utils.py          # 數學工具函式 (含 cal_waterfall)
 ├── app/                       # 應用邏輯
 │   ├── app_controller.py      # MVC Controller
 │   ├── data_manager.py        # CSV/JSON 匯出
 │   └── state_machine.py       # 狀態機
-├── camera/                    # 攝影機抽象層
-│   ├── camera_interface.py    # 介面定義
+├── camera/                    # 攝影機抽象層 (支援切換)
+│   ├── camera_interface.py    # 介面定義 (含 depth 方法)
 │   ├── webcam_provider.py     # Webcam 實作
-│   └── depth_camera_stub.py   # 深度攝影機 Stub
+│   └── depth_camera_provider.py # 深度攝影機 (Kinect v2 / Orbbec)
 ├── skeleton/                  # 骨架追蹤
 │   ├── skeleton_tracker.py    # MediaPipe 封裝
 │   └── skeleton_data.py       # 骨架資料模型
 ├── ui/                        # 使用者介面
 │   ├── main_window.py         # 主視窗
-│   ├── camera_panel.py        # 攝影機畫面
+│   ├── camera_panel.py        # 鏡頭設定 + 方向選擇
 │   ├── gait_panel.py          # 步態測量面板
 │   └── result_panel.py        # 結果顯示面板
 └── assets/locales/
     └── zh_TW.json             # 繁體中文語系
 
-LG/                            # 廠商原始資料
-├── GaitBEST_Analysis.pdf      # 產品說明書 / 分析報告
+GaitAnalysis/                  # v1.0 原始碼 (保留備份, 不再修改)
+LG/                            # 廠商原始資料 (唯讀參考)
+├── GaitBEST_Analysis.pdf      # GaitBEST 反編譯分析文件
 └── Data(原始檔)/               # 安裝程式與驅動
-    ├── GaitBEST/               # GaitBEST 1.02.02 步態分析程式
-    │   ├── GaitBEST.exe       # Unity 步態分析程式
-    │   ├── _Setting/          # 設定檔 (gait.ini, happygogoparam.ini)
-    │   └── ...
-    ├── Noraxon/               # Noraxon MR 3.18 (肌電/步態)
-    ├── Zebris/                # Zebris FDM 壓力板 1.18.44
-    │   ├── Driver/            # USB 驅動
-    │   └── Software/          # 分析軟體
-    └── software/              # 公用工具 (7-Zip, XnView, WinRAR...)
+    ├── GaitBEST/              # GaitBEST 1.02.02 (Unity)
+    ├── Noraxon/               # Noraxon MR 3.18
+    ├── Zebris/                # Zebris FDM 壓力板
+    └── software/              # 公用工具
+
+reference/                     # 參考專案
+├── PoseAI/                    # MediaPipe + FastAPI 姿勢分析
+└── MoveAgeEye/                # TensorFlow.js MoveNet 平台
 ```
 
 ## 分析模組說明
 
-| 模組 | 功能 |
-|------|------|
-| `simple_analyzer.py` | 主力分析器：計算步長、步頻、站立/擺動期、對稱性、穩定度 |
-| `gait_analyzer.py` | 進步步態週期分析 (Heel Strike / Toe Off 偵測) |
-| `risk_calculator.py` | 根據步態參數計算跌倒風險分數 |
-| `math_utils.py` | 角度計算、濾波、統計工具 |
+| 模組 | 功能 | 狀態 |
+|------|------|------|
+| `simple_analyzer.py` | 主力分析器：HS/TO 偵測、CalWaterFall 校正、步長/步頻/站立期/擺動期/支撐期/ROM/風險 | ✅ v2.0 重寫 |
+| `gait_analyzer.py` | 資料模型 (GaitLength, GaitTimes, GaitSupport, GROM, GaitRisk, GaitResult) | ✅ 完整 |
+| `risk_calculator.py` | 根據 strideLength/height 計算跌倒/功能喪失/失能三項風險 | ✅ 完整 |
+| `math_utils.py` | Savitzky-Golay、峰值/波谷、CalWaterFall、角度、CV、標準差 | ✅ 強化 |
 
 ## 開發指令
 
 ```bash
 # 安裝依賴
-pip install -r GaitAnalysis/requirements.txt
+pip install -r healthIR/requirements.txt
 
 # 執行開發版本
-python GaitAnalysis/main.py
+python healthIR/main.py
 
 # 打包成 exe
-pyinstaller --onefile --windowed GaitAnalysis/main.py
+pyinstaller --onefile --windowed healthIR/main.py
 ```
+
+## 鏡頭支援
+
+| 類型 | 狀態 | 說明 |
+|------|------|------|
+| 一般 Webcam | ✅ 可運作 | OpenCV VideoCapture |
+| 手機 IP Webcam | ✅ 可運作 | 同 Webcam，選 camera_id |
+| Kinect v2 | 🚧 架構就緒 | 需 pykinect2 驅動 |
+| Orbbec Astra | 🚧 架構就緒 | 需 openni 驅動 |
 
 ## 參考專案 (reference/)
 
@@ -96,4 +108,6 @@ pyinstaller --onefile --windowed GaitAnalysis/main.py
 - [x] Git 初始化 (2026-07-21)
 - [x] 第一次完整 Commit (0ff70c9)
 - [x] 推送至 GitHub (Health_Image_Recognition)
-- [ ] 連接遠端仓库 (已完成)
+- [x] v2.0 開發目錄 healthIR/ 建立 (2026-07-21)
+- [x] Phase 1 演算法重寫 (HS/TO, CalWaterFall, 真實站立/擺動/支撐期)
+- [x] 鏡頭切換架構 (4 種鏡頭類型 + 步態方向選擇)

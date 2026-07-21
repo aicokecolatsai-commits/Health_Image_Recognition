@@ -56,6 +56,10 @@ reference/PoseAI/pose-analyzer/backend/data/calibrations/
 reference/PoseAI/pose-analyzer/backend/data/reports/
 reference/PoseAI/pose-analyzer/backend/__pycache__/
 
+# healthIR dev directory
+healthIR/__pycache__/
+healthIR/data/
+
 # OS
 Thumbs.db
 .DS_Store
