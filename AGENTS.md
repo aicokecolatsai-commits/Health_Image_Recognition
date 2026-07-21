@@ -44,7 +44,7 @@ GaitAnalysis/                  # 主應用程式 (Python 原始碼)
 LG/                            # 廠商原始資料
 ├── GaitBEST_Analysis.pdf      # 產品說明書 / 分析報告
 └── Data(原始檔)/               # 安裝程式與驅動
-    ├── LongGoodMediTech/      # 龍骨醫材 GaitBEST 1.02.02
+    ├── GaitBEST/               # GaitBEST 1.02.02 步態分析程式
     │   ├── GaitBEST.exe       # Unity 步態分析程式
     │   ├── _Setting/          # 設定檔 (gait.ini, happygogoparam.ini)
     │   └── ...
