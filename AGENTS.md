@@ -25,6 +25,14 @@ healthIR/                      # 主要開發目錄 (v2.0 重寫)
 │   │   └── 真實站立/擺動期    # 從 HS/TO 事件計算，取代硬編碼
 │   ├── risk_calculator.py     # 跌倒風險計算
 │   └── math_utils.py          # 數學工具函式 (含 cal_waterfall)
+├── cloud/                     # 雲端整合
+│   ├── line_login.py          # LINE OAuth 2.0 登入 (QR code + token 交換)
+│   ├── cloud_service.py       # Firebase Admin SDK (Firestore CRUD)
+│   ├── sync_manager.py        # 本地↔雲端同步協調器
+│   └── firebase_function/     # Cloud Function (LINE callback 中繼)
+│       ├── main.py            #   HTTP trigger: LINE auth → Firestore
+│       ├── requirements.txt   #   Python 依賴
+│       └── package.json       #   部署腳本
 ├── app/                       # 應用邏輯
 │   ├── app_controller.py      # MVC Controller
 │   ├── data_manager.py        # CSV/JSON 匯出
@@ -111,3 +119,4 @@ pyinstaller --onefile --windowed healthIR/main.py
 - [x] v2.0 開發目錄 healthIR/ 建立 (2026-07-21)
 - [x] Phase 1 演算法重寫 (HS/TO, CalWaterFall, 真實站立/擺動/支撐期)
 - [x] 鏡頭切換架構 (4 種鏡頭類型 + 步態方向選擇)
+- [x] 雲端整合: LINE Login + Firebase Firestore (29b3fc1)
