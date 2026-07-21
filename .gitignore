@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+*.spec
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Built binary
+GaitAnalysis/GaitAnalysis.exe
+
+# Large vendor installers (use Git LFS if needed)
+LG/Data(原始檔)/install.exe
+LG/Data(原始檔)/noraxon.mr.3.18.126.exe
+LG/Data(原始檔)/VC_RED.*
+LG/Data(原始檔)/vcredist.bmp
+LG/Data(原始檔)/install.res.*.dll
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/GaitBEST.exe
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/UnityPlayer.dll
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/MonoBleedingEdge/
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/OpenNI2/
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/vgbtechs/
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/KinectRuntime-v2.0_1409-Setup.exe
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/NuiDatabase/
+LG/Data(原始檔)/LongGoodMediTech/GaitBEST*/GaitBEST_Data/Managed/
+LG/Data(原始檔)/Zebris/
+LG/Data(原始檔)/software/
+LG/Data(原始檔)/$RECYCLE.BIN/
+
+# OS
+Thumbs.db
+.DS_Store
