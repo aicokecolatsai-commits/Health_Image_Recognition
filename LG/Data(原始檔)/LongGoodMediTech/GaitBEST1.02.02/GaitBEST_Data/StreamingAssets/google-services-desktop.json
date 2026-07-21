@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1039322918075",
+    "firebase_url": "https://unityme-longgood.firebaseio.com",
+    "project_id": "unityme-longgood",
+    "storage_bucket": "unityme-longgood.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1039322918075:android:fef01f444c48ba95cd0d9e",
+        "android_client_info": {
+          "package_name": "com.longgood.LongGoodMediTech"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1039322918075-jcm2lqaaitsatv7lmphgif9ci6chgavj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5k5oMhmZrNp5aPFzVNjeh9F3YcBSmOzQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1039322918075-jcm2lqaaitsatv7lmphgif9ci6chgavj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
