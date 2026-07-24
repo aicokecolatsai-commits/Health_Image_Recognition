@@ -7,6 +7,7 @@ from ui.camera_panel import CameraPanel
 from ui.gait_panel import GaitPanel
 from ui.result_panel import ResultPanel
 from ui.login_panel import LoginPanel
+from ui.patient_panel import PatientPanel
 from analysis.gait_analyzer import GaitResult
 
 
@@ -30,31 +31,35 @@ class MainWindow(ctk.CTk):
         self._tab_view = ctk.CTkTabview(self)
         self._tab_view.pack(fill="both", expand=True, padx=10, pady=5)
 
-        tab_login = "登入"
-        tab_camera = Config.lang("camera.tab", "Camera")
-        tab_gait = Config.lang("gait.tab", "Measurement")
-        tab_result = Config.lang("result.tab", "Result")
-
-        self._tab_view.add(tab_login)
-        self._tab_view.add(tab_camera)
-        self._tab_view.add(tab_gait)
-        self._tab_view.add(tab_result)
+        tabs = ["登入", "病人管理", "鏡頭設定", "步態測量", "分析結果"]
+        for t in tabs:
+            self._tab_view.add(t)
 
         self._login_panel = LoginPanel(
-            self._tab_view.tab(tab_login),
+            self._tab_view.tab(tabs[0]),
             self._controller.line_login,
             self._controller.cloud,
             self._controller.sync_manager,
         )
         self._login_panel.pack(fill="both", expand=True)
 
-        self._camera_panel = CameraPanel(self._tab_view.tab(tab_camera), self._controller)
+        self._patient_panel = PatientPanel(
+            self._tab_view.tab(tabs[1]),
+            self._controller.patient_manager,
+        )
+        self._patient_panel.pack(fill="both", expand=True)
+
+        self._camera_panel = CameraPanel(self._tab_view.tab(tabs[2]), self._controller)
         self._camera_panel.pack(fill="both", expand=True)
 
-        self._gait_panel = GaitPanel(self._tab_view.tab(tab_gait), self._controller)
+        self._gait_panel = GaitPanel(self._tab_view.tab(tabs[3]), self._controller)
         self._gait_panel.pack(fill="both", expand=True)
 
-        self._result_panel = ResultPanel(self._tab_view.tab(tab_result), self._controller.data_manager)
+        self._result_panel = ResultPanel(
+            self._tab_view.tab(tabs[4]),
+            self._controller.data_manager,
+            self._controller.patient_manager,
+        )
         self._result_panel.pack(fill="both", expand=True)
 
     def _bind_events(self):
@@ -74,7 +79,7 @@ class MainWindow(ctk.CTk):
     def _on_result(self, result: GaitResult):
         if result and result.valid:
             self._result_panel.show_result(result)
-            self._tab_view.set(Config.lang("result.tab", "Result"))
+            self._tab_view.set("分析結果")
 
     def _on_state_change(self, old, new):
         pass

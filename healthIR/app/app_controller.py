@@ -15,6 +15,7 @@ from app.data_manager import DataManager
 from cloud.cloud_service import CloudService
 from cloud.line_login import LineLogin
 from cloud.sync_manager import SyncManager
+from app.patient_manager import PatientManager
 from config import Config, CameraType, GaitAxis
 
 
@@ -33,6 +34,7 @@ class AppController:
         self.cloud = CloudService()
         self.line_login = LineLogin()
         self.sync_manager = SyncManager(self.cloud, self.line_login)
+        self.patient_manager = PatientManager()
         self._camera: CameraInterface | None = None
         self._tracker: SkeletonTracker | None = None
         self._analyzer: SimpleGaitAnalyzer | None = None
@@ -144,8 +146,9 @@ class AppController:
         self._last_result = result
         if result.valid:
             self.data_manager.save_result(result)
+            patient_id = self.patient_manager.active_patient.patient_id if self.patient_manager.active_patient else "default"
             if self.sync_manager.is_ready:
-                self.sync_manager.upload_assessment("default", result)
+                self.sync_manager.upload_assessment(patient_id, result)
             self.state_machine.transition(AppState.RESULT)
         else:
             self.state_machine.transition(AppState.CAMERA_READY)
