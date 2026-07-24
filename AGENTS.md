@@ -36,6 +36,8 @@ healthIR/                      # 主要開發目錄 (v2.0 重寫)
 ├── app/                       # 應用邏輯
 │   ├── app_controller.py      # MVC Controller
 │   ├── data_manager.py        # CSV/JSON 匯出
+│   ├── patient_manager.py     # 病人 CRUD (JSON 儲存)
+│   ├── pdf_generator.py       # PDF 報表產生 (reportlab)
 │   └── state_machine.py       # 狀態機
 ├── camera/                    # 攝影機抽象層 (支援切換)
 │   ├── camera_interface.py    # 介面定義 (含 depth 方法)
@@ -74,6 +76,12 @@ reference/                     # 參考專案
 | `gait_analyzer.py` | 資料模型 (GaitLength, GaitTimes, GaitSupport, GROM, GaitRisk, GaitResult) | ✅ 完整 |
 | `risk_calculator.py` | 根據 strideLength/height 計算跌倒/功能喪失/失能三項風險 | ✅ 完整 |
 | `math_utils.py` | Savitzky-Golay、峰值/波谷、CalWaterFall、角度、CV、標準差 | ✅ 強化 |
+| `patient_manager.py` | 病人 CRUD 管理 (JSON 檔案儲存) | ✅ 完整 |
+| `pdf_generator.py` | PDF 報表產生 (reportlab，含五項參數表格) | ✅ 完整 |
+| `chart_widget.py` | Matplotlib 六面板圖表 (空間/風險/ROM/支撐期/對稱性/摘要) | ✅ 完整 |
+| `line_login.py` | LINE OAuth 2.0 登入 (QR code + token 交換) | ✅ 完整 |
+| `cloud_service.py` | Firebase Firestore CRUD (病人/評估記錄) | ✅ 完整 |
+| `sync_manager.py` | 本地↔雲端同步協調器 | ✅ 完整 |
 
 ## 開發指令
 
@@ -120,3 +128,4 @@ pyinstaller --onefile --windowed healthIR/main.py
 - [x] Phase 1 演算法重寫 (HS/TO, CalWaterFall, 真實站立/擺動/支撐期)
 - [x] 鏡頭切換架構 (4 種鏡頭類型 + 步態方向選擇)
 - [x] 雲端整合: LINE Login + Firebase Firestore (29b3fc1)
+- [x] 桌面端功能補強: 病人管理 + 圖表 + PDF 報表 (86e318d)
